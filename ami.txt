@@ -1,0 +1,137 @@
+1. Create and Launch an  EC2 instance using Amazon Ubuntu AMI from AWS console
+
+2. Connect to this instance using ssh:
+   
+   ssh -i pem_key_filename ubuntu@public_dns
+
+   where pem_key_filename is the permissions key, downloaded from AWS earlier
+   public_dns is the Public DNS address of the instance
+ 
+# a) nano ~/.ssh/config
+	b) add follwing in config file
+	#########################
+	Host HadoopMaster
+    HostName 54.203.75.202
+    User ubuntu
+    IdentityFile ~/.ssh/cloudclass.pem
+
+    Host Slave1
+    HostName 34.226.219.217
+    User ubuntu
+    IdentityFile ~/.ssh/cloudclass.pem
+
+    Host Slave2
+    HostName 54.227.54.65
+    User ubuntu
+    IdentityFile ~/.ssh/cloudclass.pem
+
+    Host Slave3
+    HostName 54.87.196.115
+    User ubuntu
+    IdentityFile ~/.ssh/cloudclass.pem
+    ###########################	
+	
+$ edit etc/hosts
+	
+	nano /etc/hosts
+	public_ip HadoopMaster
+	public_ip Slave1
+	public_ip Slave2
+	public_ip Slave3
+	
+
+	
+	
+5 install java 
+   sudo su
+   apt-get update && apt-get install openjdk-8-jdk   
+    
+6 install hadoop  
+ 
+   wget http://apache.mirrors.tds.net/hadoop/common/hadoop-2.8.0/hadoop-2.8.0.tar.gz && tar -xzvf hadoop-2.8.0.tar.gz && mv hadoop-2.8.0 /usr/local/hadoop
+   
+7 Add Hadoop and java to environment variables and verify installation
+
+	a)	cd
+	    nano .bashrc
+		Append this into ~/.bashrc
+		##########################
+		export JAVA_HOME=/usr
+		export PATH=$PATH:$JAVA_HOME/bin
+		export HADOOP_HOME=/usr/local/hadoop
+		export PATH=$PATH:$HADOOP_HOME/bin
+		export HADOOP_CONF_DIR=/usr/local/hadoop/etc/hadoop 
+		###########################
+
+    b) Source the bashrc:
+		source .bashrc
+	c)  hadoop version	   
+	
+  all steps from now will run on /usr/local/hadoop/etc/hadoop
+8 nano $HADOOP_CONF_DIR/hadoop-env.sh
+		change java_home to this
+		export JAVA_HOME=/usr
+
+9 hadoop configuration
+	nano core-site.xml
+	
+	<property>
+	  <name>fs.default.name</name>
+	  <value>hdfs://ec2-34-229-94-146.compute-1.amazonaws.com:9000</value>
+	</property>
+
+
+8 nano hdfs-site.xml
+	
+	<property>
+	  <name>dfs.replication</name>
+	  <value>3</value>
+	</property>
+	<property>
+	  <name>dfs.namenode.name.dir</name>
+	  <value>/home/ubuntu/hadoop/hdfs/namenode</value>
+	  </property>
+	  <property>
+	  <name>dfs.datanode.data.dir</name>
+	  <value>/home/ubuntu/hadoop/datanode</value>
+	 </property>
+
+ 
+ 
+9) create directory
+		mkdir -p  /home/ubuntu/hadoop/hdfs/namenode /home/ubuntu/hadoop/datanode
+		chmod -R 777  /home/ubuntu/hadoop/	
+	
+10 ) nano yarn-site.xml	
+	<property>
+		<name>yarn.resourcemanager.resource-tracker.address</name>
+		<value>hdfs://ec2-34-229-94-146.compute-1.amazonaws.com:8025</value>
+	</property>
+	<property>
+		<name>yarn.resourcemanager.scheduler.address</name>
+		<value>hdfs://ec2-34-229-94-146.compute-1.amazonaws.com:8035</value>
+	</property>
+	<property>
+		<name>yarn.resourcemanager.address</name>
+		<value>hdfs://ec2-34-229-94-146.compute-1.amazonaws.com:8050</value>
+	</property>
+
+11)
+	cp mapred-site.xml.template mapred-site.xml
+	nano mapred-site.xml
+
+
+		<property>
+			<name>mapreduce.job.tracker</name>
+			<value>hdfs://ec2-34-229-94-146.compute-1.amazonaws.com:5431</value>
+		</property>
+		<property>
+			<name>mapred.framework.name</name>
+			<value>yarn</value>
+		</property>
+
+12) nano masters	
+13) nano slaves	
+	
+this steps partially created our hadoop ami.	
+now we will continue in README file.
